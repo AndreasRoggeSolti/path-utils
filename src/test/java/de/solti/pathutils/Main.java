@@ -1,4 +1,4 @@
-package de.solti;
+package de.solti.pathutils;
 
 public class Main {
 
