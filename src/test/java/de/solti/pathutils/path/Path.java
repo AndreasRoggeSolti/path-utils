@@ -1,9 +1,6 @@
 package de.solti.pathutils.path;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.Vector;
+import java.io.Serializable;
 
 /**
  * A path is an enumeration of positions in time.
@@ -14,13 +11,16 @@ import java.util.Vector;
  * @author Andreas Rogge-Solti
  *
  */
-public abstract class Path<T extends Number> {
+public abstract class Path<T extends Number> implements Serializable{
+	private static final long serialVersionUID = 4665961375810089515L;
 	
-	private Location<T>[] locations;
+	public static final String SEP = ";";
 	
-	private long[] timesAtLocations;
+	protected Location<T>[] locations;
 	
-	public Path(Location<T>[] locations, long[] times){
+	protected Long[] timesAtLocations;
+	
+	public Path(Location<T>[] locations, Long[] times){
 		this.locations = locations;
 		this.timesAtLocations = times;
 	}
@@ -31,9 +31,8 @@ public abstract class Path<T extends Number> {
 	 * @param granularity tells us at how many points we want to compare the two paths.
 	 * @return
 	 */
-	public T getDistance(Path<T> other, int granularity){
-		return null;
-	}
+	public abstract T getDistance(Path<T> other, int granularity);
+		
 	
 	public Location<T> getLocationAtTime(long timeStamp) throws TimeOutOfBoundsException{
 		if (timeStamp < timesAtLocations[0] || timeStamp > timesAtLocations[timesAtLocations.length-1]){
@@ -47,7 +46,7 @@ public abstract class Path<T extends Number> {
 				// interpolate with next value;
 				long prevTime = timesAtLocations[pos];
 				long nextTime = timesAtLocations[pos+1];
-				double ratio = (timeStamp-prevTime) / (nextTime - prevTime);
+				double ratio = (timeStamp-prevTime) / (double)(nextTime - prevTime);
 				Location<T> last = locations[pos];
 				Location<T> next = locations[pos+1];
 				return getInterpolation(last,next,ratio);
@@ -61,7 +60,7 @@ public abstract class Path<T extends Number> {
 
 	protected abstract Location<T> getInterpolation(Location<T> last, Location<T> next, double ratio);
 
-	public int getLowerValue(long[] times, long time) throws TimeOutOfBoundsException{
+	public int getLowerValue(Long[] times, long time) throws TimeOutOfBoundsException{
 		if (times[0] > time || times[times.length-1] < time){
 			throw new TimeOutOfBoundsException();
 		}
@@ -81,5 +80,19 @@ public abstract class Path<T extends Number> {
 		return mid;
 	}
 
+	public static String getHeader() {
+		return "timeStamp"+SEP+"coordinates";
+	}
 	
+	public String toString(){
+		StringBuffer buffer = new StringBuffer();
+		for (int i = 0; i < timesAtLocations.length; i++){
+			buffer.append(timesAtLocations[i]);
+			buffer.append(SEP);
+			buffer.append(locations[i].toString());
+			buffer.append("\n");
+		}
+		return buffer.toString();
+	}
+
 }
